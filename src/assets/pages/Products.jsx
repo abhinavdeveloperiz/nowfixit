@@ -45,7 +45,7 @@ function Products() {
 
   return (
     <main className="min-h-screen bg-[#f8f7f4]">
-      <section className="mx-auto  py-10 lg:px-10 lg:py-14">
+      <section className="mx-auto px-6 py-10 lg:px-10 lg:py-14">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <label className="relative block w-full sm:max-w-md">
             <Search
