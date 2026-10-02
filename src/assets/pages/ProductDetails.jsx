@@ -6,9 +6,10 @@ import {
   Check,
   ChevronRight,
   Heart,
+  Minus,
   PackageCheck,
+  Plus,
   ShieldCheck,
-  Star,
   Truck,
 } from "lucide-react";
 import { formatPrice, products } from "../data/products";
@@ -18,6 +19,8 @@ function ProductDetails() {
   const navigate = useNavigate();
   const product = products.find((item) => item.id === Number(productId));
   const [quantity, setQuantity] = useState(1);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isWishlisted, setIsWishlisted] = useState(false);
   const [error, setError] = useState("");
 
   if (!product) {
@@ -39,6 +42,21 @@ function ProductDetails() {
     );
   }
 
+  const galleryImages = [
+    ...new Set([
+      product.image,
+      ...products
+        .filter(
+          (item) =>
+            item.category === product.category && item.id !== product.id,
+        )
+        .map((item) => item.image),
+      ...products
+        .filter((item) => item.id !== product.id)
+        .map((item) => item.image),
+    ]),
+  ].slice(0, 4);
+
   const placeOrder = (submittedAt) => {
     try {
       const savedOrders = JSON.parse(
@@ -55,7 +73,10 @@ function ProductDetails() {
         createdAt: new Date(submittedAt).toISOString(),
         status: "Order received",
       });
-      window.localStorage.setItem("nowfixit-orders", JSON.stringify(savedOrders));
+      window.localStorage.setItem(
+        "nowfixit-orders",
+        JSON.stringify(savedOrders),
+      );
       navigate("/my-orders");
     } catch {
       setError("We couldn’t save your order. Please try again.");
@@ -77,56 +98,84 @@ function ProductDetails() {
             Products
           </Link>
           <ChevronRight size={14} />
-          <span className="truncate font-medium text-gray-900">{product.name}</span>
+          <span className="truncate font-medium text-gray-900">
+            {product.name}
+          </span>
         </nav>
 
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
-          <div className="relative overflow-hidden rounded-[2rem] bg-[#ecebe5]">
-            <div className="absolute left-5 top-5 z-10 rounded-full bg-white/95 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-900">
-              {product.discount}% off
+        <div className="grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+          <div>
+            <div className="relative overflow-hidden rounded-[2rem] border border-gray-200/80 bg-white shadow-sm">
+              <div className="absolute left-5 top-5 z-10 rounded-full bg-white/95 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-900 shadow-sm">
+                {product.discount}% off
+              </div>
+              <img
+                key={galleryImages[activeImageIndex]}
+                src={galleryImages[activeImageIndex]}
+                alt={`${product.name} image ${activeImageIndex + 1}`}
+                className="aspect-square h-full w-full object-cover transition-opacity duration-300"
+              />
             </div>
-            <img
-              src={product.image}
-              alt={product.name}
-              className="aspect-square h-full w-full object-cover"
-            />
+            <div
+              className="mt-4 grid grid-cols-4 gap-3"
+              aria-label="Product images"
+            >
+              {galleryImages.map((image, index) => (
+                <button
+                  key={image}
+                  type="button"
+                  onClick={() => setActiveImageIndex(index)}
+                  aria-label={`Show product image ${index + 1}`}
+                  aria-pressed={activeImageIndex === index}
+                  className={`overflow-hidden rounded-xl border-2 bg-white transition ${
+                    activeImageIndex === index
+                      ? "border-gray-900 ring-2 ring-gray-900/10"
+                      : "border-transparent hover:border-gray-300"
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt=""
+                    className="aspect-square w-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
-          <section className="flex flex-col py-1 lg:py-5">
+          <section className="flex flex-col py-1 lg:py-3">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-lime-800">
               {product.category}
             </p>
             <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-gray-950 sm:text-4xl">
               {product.name}
             </h1>
-            <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
-              <span className="inline-flex items-center gap-1 font-semibold text-gray-900">
-                <Star size={15} fill="currentColor" className="text-amber-400" />
-                {product.rating}
-              </span>
-              <span className="text-gray-300">·</span>
-              <span>{product.reviews} customer reviews</span>
-            </div>
-
-            <div className="mt-6 flex flex-wrap items-baseline gap-3 border-b border-gray-200 pb-6">
+            <div className="mt-6 flex flex-wrap items-baseline gap-3">
               <span className="text-3xl font-bold tracking-tight text-gray-950">
                 {formatPrice(product.price)}
               </span>
-              <span className="text-base text-gray-400 line-through">
-                {formatPrice(product.oldPrice)}
-              </span>
-              <span className="rounded-full bg-lime-100 px-3 py-1 text-xs font-semibold text-lime-900">
-                Save {formatPrice(product.oldPrice - product.price)}
-              </span>
+              {product.oldPrice && (
+                <>
+                  <span className="text-base text-gray-400 line-through">
+                    {formatPrice(product.oldPrice)}
+                  </span>
+                  <span className="rounded-full bg-lime-100 px-3 py-1 text-xs font-semibold text-lime-900">
+                    Save {formatPrice(product.oldPrice - product.price)}
+                  </span>
+                </>
+              )}
             </div>
 
-            <p className="mt-6 text-sm leading-7 text-gray-600">
+            <p className="mt-5 border-t border-gray-200 pt-5 text-sm leading-7 text-gray-600 text-justify">
               {product.description}
             </p>
 
             <div className="mt-6 space-y-3">
               {product.features.map((feature) => (
-                <div key={feature} className="flex items-center gap-3 text-sm text-gray-700">
+                <div
+                  key={feature}
+                  className="flex items-center gap-3 text-sm text-gray-700"
+                >
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-100 text-lime-800">
                     <Check size={12} strokeWidth={2.5} />
                   </span>
@@ -135,39 +184,51 @@ function ProductDetails() {
               ))}
             </div>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <div className="flex h-12 items-center justify-between rounded-xl border border-gray-200 bg-white px-3 sm:w-32">
-                <button
-                  type="button"
-                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                  aria-label="Decrease quantity"
-                  className="h-8 w-8 rounded-lg text-lg text-gray-600 hover:bg-gray-100"
-                >
-                  −
-                </button>
-                <span className="text-sm font-semibold text-gray-900">{quantity}</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantity((value) => value + 1)}
-                  aria-label="Increase quantity"
-                  className="h-8 w-8 rounded-lg text-lg text-gray-600 hover:bg-gray-100"
-                >
-                  +
-                </button>
+            <div className="mt-8 rounded-2xl border border-gray-900 bg-white shadow-lg p-4 sm:p-5">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    Quantity
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Choose how many you need
+                  </p>
+                </div>
+                <div className="flex h-11 items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setQuantity((value) => Math.max(1, value - 1))
+                    }
+                    disabled={quantity <= 1}
+                    aria-label="Decrease quantity"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 transition hover:bg-white disabled:cursor-not-allowed disabled:text-gray-300"
+                  >
+                    <Minus size={15} />
+                  </button>
+                  <span
+                    aria-live="polite"
+                    className="min-w-5 text-center text-sm font-semibold text-gray-900"
+                  >
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((value) => value + 1)}
+                    aria-label="Increase quantity"
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-600 transition hover:bg-white"
+                  >
+                    <Plus size={15} />
+                  </button>
+                </div>
               </div>
+
               <button
                 type="button"
                 onClick={() => placeOrder(Date.now())}
-                className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 text-sm font-semibold text-white transition hover:bg-lime-800"
+                className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 text-sm font-semibold text-white transition hover:bg-lime-800"
               >
                 Place order <ArrowRight size={17} />
-              </button>
-              <button
-                type="button"
-                aria-label="Add to wishlist"
-                className="flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-white px-4 text-gray-700 transition hover:border-gray-400"
-              >
-                <Heart size={18} />
               </button>
             </div>
             {error && (
@@ -176,70 +237,22 @@ function ProductDetails() {
               </p>
             )}
 
-            <div className="mt-8 grid grid-cols-1 gap-3 border-t border-gray-200 pt-6 sm:grid-cols-3">
-              <div className="flex items-center gap-3 text-xs leading-5 text-gray-600">
-                <Truck size={18} className="shrink-0 text-gray-900" />
+            <div className="mt-8 grid grid-cols-2 gap-3 border-t border-gray-200 pt-6 sm:grid-cols-3">
+              <div className="flex items-center gap-3 text-xs leading-5 bg-green-600 text-gray-100 px-6 py-2">
+                <Truck size={18} className="shrink-0 text-gray-100" />
                 <span>Free delivery on eligible orders</span>
               </div>
-              <div className="flex items-center gap-3 text-xs leading-5 text-gray-600">
-                <ShieldCheck size={18} className="shrink-0 text-gray-900" />
+              <div className="flex items-center gap-3 text-xs leading-5 bg-blue-600 text-gray-100 px-6 py-2">
+                <ShieldCheck size={18} className="shrink-0 text-gray-100" />
                 <span>Quality checked before dispatch</span>
               </div>
-              <div className="flex items-center gap-3 text-xs leading-5 text-gray-600">
-                <PackageCheck size={18} className="shrink-0 text-gray-900" />
+              <div className="flex items-center gap-3 text-xs leading-5 bg-purple-600 text-gray-100 px-6 py-2">
+                <PackageCheck size={18} className="shrink-0 text-gray-100" />
                 <span>Carefully packed for your project</span>
               </div>
             </div>
           </section>
         </div>
-
-        <section className="mt-16 border-t border-gray-200 pt-9">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
-                Keep exploring
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-gray-950">
-                You may also like
-              </h2>
-            </div>
-            <Link
-              to="/products"
-              className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-gray-800 hover:text-lime-800"
-            >
-              All products <ArrowRight size={15} />
-            </Link>
-          </div>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {products
-              .filter((item) => item.id !== product.id)
-              .slice(0, 3)
-              .map((item) => (
-                <Link
-                  key={item.id}
-                  to={`/products/${item.id}`}
-                  className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-3 transition hover:shadow-md"
-                >
-                  <img
-                    src={item.image}
-                    alt=""
-                    className="h-20 w-20 rounded-xl bg-gray-100 object-cover"
-                  />
-                  <span className="min-w-0">
-                    <span className="block text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                      {item.category}
-                    </span>
-                    <span className="mt-1 block truncate text-sm font-semibold text-gray-900">
-                      {item.name}
-                    </span>
-                    <span className="mt-1 block text-sm text-gray-700">
-                      {formatPrice(item.price)}
-                    </span>
-                  </span>
-                </Link>
-              ))}
-          </div>
-        </section>
       </div>
     </main>
   );

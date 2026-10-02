@@ -87,7 +87,7 @@ function Profile() {
             <button
               type="button"
               onClick={logOut}
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/15 px-4 text-sm font-medium text-white/85 transition hover:border-red-300/40 hover:bg-red-400/10 hover:text-red-100"
+              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium text-white/85 transition border-red-600 hover:border-red-300/40 hover:bg-red-600 hover:text-red-100"
             >
               <LogOut size={16} />
               Log out
@@ -96,7 +96,10 @@ function Profile() {
         </section>
 
         {error && (
-          <p role="alert" className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-800">
+          <p
+            role="alert"
+            className="mt-5 rounded-xl bg-red-50 p-4 text-sm text-red-800"
+          >
             {error}
           </p>
         )}

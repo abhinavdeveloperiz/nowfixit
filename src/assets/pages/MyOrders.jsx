@@ -26,7 +26,9 @@ function MyOrders() {
         }
         setOrders(savedOrders);
       } catch {
-        setLoadError("We couldn’t load your orders. Please refresh and try again.");
+        setLoadError(
+          "We couldn’t load your orders. Please refresh and try again.",
+        );
       }
     });
 
@@ -39,9 +41,6 @@ function MyOrders() {
     <main className="min-h-screen bg-[#f8f7f4]">
       <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
         <div className="rounded-[2rem] bg-[#171916] px-6 py-8 text-white sm:px-10 sm:py-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-lime-300">
-            Your account
-          </p>
           <div className="mt-3 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
             <div>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -61,13 +60,18 @@ function MyOrders() {
         </div>
 
         {loadError ? (
-          <p role="alert" className="mt-8 rounded-2xl bg-red-50 p-5 text-sm text-red-800">
+          <p
+            role="alert"
+            className="mt-8 rounded-2xl bg-red-50 p-5 text-sm text-red-800"
+          >
             {loadError}
           </p>
         ) : orders.length ? (
           <section className="mt-8 space-y-4" aria-label="Order history">
             {orders.map((order) => {
-              const product = products.find((item) => item.id === order.productId);
+              const product = products.find(
+                (item) => item.id === order.productId,
+              );
 
               return (
                 <article
